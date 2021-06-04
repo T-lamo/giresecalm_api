@@ -9,8 +9,8 @@ from requests.api import request
 from rest_framework import serializers
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from .models import Beneficiaire
-from .serializers import BeneficiaireSerializer
+from .models import Beneficiaire, Comment, Post
+from .serializers import BeneficiaireSerializer,CommentSerializer,PostSerializer
 from django.http import Http404
 from rest_framework import status
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication,TokenAuthentication
@@ -35,7 +35,7 @@ class BeneficiaireView(APIView):
             serializer.save()
             return Response(serializer.data)
         return Response(serializer.errors)
-    
+
     def get_object(self, pk):
         try:
             return Beneficiaire.objects.get(pk=pk)
@@ -238,6 +238,76 @@ class OwnApiView(APIView):
         logger.error("Testing")
         print(commit_data)
         #serializer = BeneficiaireSerializer(beneficiaires, many=True)
-        #return Response({'status':200})
+        #return Response({'status':200})apiview
         return Response(commit_data[0])
+class CommentView(APIView):
+    #authentication_classes = [SessionAuthentication, BasicAuthentication, TokenAuthentication]
+    #permission_classes = [IsAuthenticated]
+    def post (self, request, *args, **kwargs):
+        serializer = CommentSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors)
+    def get (self,request, pk=-1, format=None):
+        if pk==-1:
+            comments = Comment.objects.all()
+            for c in comments:
+                print(c.post.post_ob)
+                print(c.post.post_ob.author)
 
+                print(c.post.author)
+
+
+                #c.set_post_ob(Response(CommentSerializer(c.post).data))
+                #print(c.get_post)
+            #comments = Comment.objects.select_related('post').all()
+            serializer = CommentSerializer(comments, many=True)
+            return Response(serializer.data)
+        else:
+            p = self.get_object(pk)
+            serializer = CommentSerializer(p)
+            return Response(serializer.data)
+
+    def getUnique (self,pk): 
+        p = self.get_object(pk)
+        serializer = CommentSerializer(p)
+        return Response(serializer.data)
+
+    def get_object(self, pk):
+        try:
+            return Comment.objects.get(pk=pk)
+        except Comment.DoesNotExist:
+            raise Http404
+
+
+
+class PostView(APIView):
+    #authentication_classes = [SessionAuthentication, BasicAuthentication, TokenAuthentication]
+    #permission_classes = [IsAuthenticated]
+    def post (self, request, *args, **kwargs):
+        serializer = PostSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors)
+    def get (self,request, pk=-1 , format=None): 
+        if pk==-1:
+            Posts = Post.objects.all()
+            serializer = PostSerializer(Posts, many=True)
+            return Response(serializer.data)
+        else:
+            p = self.get_object(pk)
+            serializer = PostSerializer(p)
+            return Response(serializer.data)
+    
+    def getUnique (self,pk): 
+        p = self.get_object(pk)
+        serializer = PostSerializer(p)
+        return Response(serializer.data)
+
+    def get_object(self, pk):
+        try:
+            return Post.objects.get(pk=pk)
+        except Post.DoesNotExist:
+            raise Http404
